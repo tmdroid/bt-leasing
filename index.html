@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator Leasing · BT Leasing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bt-yellow:   #FFD100;
+    --bt-yellow-dk:#E5BC00;
+    --bt-red:      #CC0000;
+    --bt-blue:     #003DA5;
+    --bt-black:    #1A1A1A;
+    --bt-gray:     #F4F4F4;
+    --bt-gray-md:  #E0E0E0;
+    --bt-gray-txt: #6B6B6B;
+    --bt-white:    #FFFFFF;
+    --radius:      10px;
+    --shadow:      0 2px 16px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #F7F7F7; color: var(--bt-black); min-height: 100vh; }
+
+  header { background: var(--bt-black); padding: 0 32px; height: 64px; display: flex; align-items: center; gap: 16px; }
+  .bt-shield { width: 38px; height: 44px; flex-shrink: 0; }
+  .header-titles h1 { color: var(--bt-white); font-size: 15px; font-weight: 700; }
+  .header-titles p { color: var(--bt-gray-txt); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+  .euribor-chip { margin-left: auto; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 7px 14px; text-align: right; }
+  .euribor-chip .label { color: var(--bt-gray-txt); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .euribor-chip .val { color: var(--bt-yellow); font-size: 19px; font-weight: 800; line-height: 1.2; }
+  .euribor-chip .src { color: #555; font-size: 9px; margin-top: 1px; }
+  .tricolor { height: 4px; background: linear-gradient(90deg, var(--bt-blue) 33.3%, var(--bt-yellow) 33.3% 66.6%, var(--bt-red) 66.6%); }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 28px 20px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 660px) { .container { grid-template-columns: 1fr; } }
+
+  .card { background: var(--bt-white); border-radius: var(--radius); border: 1px solid var(--bt-gray-md); padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .card-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bt-gray-txt); margin-bottom: 14px; }
+
+  .seg { display: flex; border: 1.5px solid var(--bt-gray-md); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .seg-btn { flex: 1; padding: 10px 8px; border: none; cursor: pointer; background: var(--bt-white); color: var(--bt-gray-txt); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; transition: background 0.15s; border-right: 1px solid var(--bt-gray-md); text-align: center; }
+  .seg-btn:last-child { border-right: none; }
+  .seg-btn.active { background: var(--bt-yellow); color: var(--bt-black); }
+  .seg-btn .sub { font-size: 10px; font-weight: 400; margin-top: 2px; color: inherit; opacity: 0.7; display: block; }
+
+  .pills { display: flex; gap: 10px; margin-bottom: 16px; }
+  .pill { flex: 1; padding: 9px 10px; border: 1.5px solid var(--bt-gray-md); border-radius: 8px; cursor: pointer; background: var(--bt-white); color: var(--bt-gray-txt); font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+  .pill.active { border-color: var(--bt-yellow); background: #FFFAE0; color: var(--bt-black); }
+
+  .sl-wrap { margin-bottom: 18px; }
+  .sl-wrap:last-child { margin-bottom: 0; }
+  .sl-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .sl-label { font-size: 11px; font-weight: 600; color: var(--bt-gray-txt); text-transform: uppercase; letter-spacing: 0.06em; }
+  .sl-value { font-size: 16px; font-weight: 800; color: var(--bt-black); }
+  input[type=range] { width: 100%; height: 5px; cursor: pointer; accent-color: var(--bt-yellow); -webkit-appearance: none; appearance: none; background: var(--bt-gray-md); border-radius: 3px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--bt-yellow); border: 2.5px solid var(--bt-black); cursor: pointer; }
+  .sl-bounds { display: flex; justify-content: space-between; font-size: 10px; color: #bbb; margin-top: 3px; }
+  .sl-hint { color: var(--bt-red); font-size: 10px; font-weight: 500; }
+
+  .rates-bar { background: var(--bt-black); border-radius: var(--radius); padding: 14px 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .rb { text-align: center; padding: 0 6px; }
+  .rb:not(:last-child) { border-right: 1px solid #333; }
+  .rl { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #666; margin-bottom: 3px; }
+  .rv { font-size: 17px; font-weight: 800; color: var(--bt-white); }
+  .rv.gold { color: var(--bt-yellow); }
+
+  .result-card { background: var(--bt-yellow); border-radius: var(--radius); padding: 22px 22px 18px; margin-bottom: 14px; position: relative; overflow: hidden; }
+  .result-card::after { content: ''; position: absolute; right: -20px; bottom: -30px; width: 120px; height: 120px; background: rgba(0,0,0,0.06); border-radius: 50%; }
+  .result-card .rl { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(0,0,0,0.45); margin-bottom: 4px; }
+  .result-card .big { font-size: 42px; font-weight: 800; color: var(--bt-black); line-height: 1; }
+  .result-card .sub-txt { font-size: 11px; color: rgba(0,0,0,0.45); margin-top: 4px; }
+  .result-split { display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.12); }
+  .result-split .ritem .rl { font-size: 9px; }
+  .result-split .ritem .rv2 { font-size: 18px; font-weight: 800; color: var(--bt-black); }
+
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--bt-gray); }
+  .row:last-child { border-bottom: none; }
+  .row .row-l { font-size: 12px; color: #555; max-width: 60%; line-height: 1.3; }
+  .row .row-r { font-size: 13px; font-weight: 700; }
+  .row.total .row-l { font-size: 13px; font-weight: 700; color: var(--bt-black); }
+  .row.total .row-r { font-size: 15px; font-weight: 800; color: var(--bt-black); }
+  .gold { color: #9a7200; }
+
+  .note { background: #FFFAE0; border-left: 3px solid var(--bt-yellow); border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 11px; color: #555; line-height: 1.65; }
+  .note strong { color: var(--bt-black); }
+
+  .tbl-btn { width: 100%; padding: 13px; background: var(--bt-yellow); color: var(--bt-black); border: none; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif; }
+  .tbl-btn:hover { background: var(--bt-yellow-dk); }
+  .tbl-wrap { margin-top: 8px; background: var(--bt-white); border-radius: var(--radius); border: 1px solid var(--bt-gray-md); overflow: hidden; max-height: 380px; overflow-y: auto; display: none; }
+  .tbl-wrap.open { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--bt-black); position: sticky; top: 0; }
+  th { padding: 10px 12px; text-align: right; font-weight: 600; color: var(--bt-yellow); white-space: nowrap; font-size: 11px; }
+  th:first-child { text-align: center; }
+  td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--bt-gray); }
+  td:first-child { text-align: center; color: #aaa; font-size: 11px; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .td-gold { color: #9a7200; font-weight: 600; }
+  .td-muted { color: #aaa; }
+  .td-bold { font-weight: 800; color: var(--bt-black); }
+
+  .spinner { display: inline-block; width: 11px; height: 11px; border: 2px solid rgba(255,209,0,0.3); border-top-color: var(--bt-yellow); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="bt-shield" viewBox="0 0 38 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19 1L2 8v14c0 10.5 7.4 20.3 17 23 9.6-2.7 17-12.5 17-23V8L19 1z" fill="#1A1A1A" stroke="#444" stroke-width="0.5"/>
+    <clipPath id="sc"><path d="M19 2.5L3.5 9v13c0 9.8 6.9 19 15.5 21.5C28.6 41 35.5 31.8 35.5 22V9L19 2.5z"/></clipPath>
+    <g clip-path="url(#sc)">
+      <rect x="3" y="2" width="10.5" height="41" fill="#003DA5"/>
+      <rect x="13.5" y="2" width="11" height="41" fill="#FFD100"/>
+      <rect x="24.5" y="2" width="12" height="41" fill="#CC0000"/>
+    </g>
+    <text x="19" y="27" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="11" fill="#FFD100" letter-spacing="-0.5">BT</text>
+  </svg>
+  <div class="header-titles">
+    <h1>Calculator Leasing Auto</h1>
+    <p>BT Leasing · Persoane Juridice · Euro</p>
+  </div>
+  <div class="euribor-chip">
+    <div class="label">EURIBOR 6M</div>
+    <div class="val" id="euribor-val"><span class="spinner"></span></div>
+    <div class="src" id="euribor-src">Se actualizează…</div>
+  </div>
+</header>
+<div class="tricolor"></div>
+
+<div class="container">
+  <!-- STANGA -->
+  <div>
+    <div class="card">
+      <div class="card-title">Tip ofertă</div>
+      <div class="seg">
+        <button class="seg-btn active" id="btn-promo" onclick="setOferta('promo')">🎯 Babe fără drame<span class="sub">Marjă 2,30% + EURIBOR 6M</span></button>
+        <button class="seg-btn" id="btn-std" onclick="setOferta('standard')">📋 Standard<span class="sub">Marjă 2,45% + EURIBOR 6M</span></button>
+      </div>
+      <div class="card-title">Tip automobil</div>
+      <div class="pills">
+        <button class="pill active" id="pill-noua" onclick="setRulata(false)">✨ Nouă</button>
+        <button class="pill" id="pill-rulata" onclick="setRulata(true)">🔧 Rulată <span style="font-weight:400;font-size:11px">(+70€ eval.)</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Parametri finanțare</div>
+      <div class="sl-wrap">
+        <div class="sl-head"><span class="sl-label">Valoare mașină</span><span class="sl-value" id="lbl-val">€20.000</span></div>
+        <input type="range" id="sl-val" min="5000" max="150000" step="500" value="20000" oninput="recalc()">
+        <div class="sl-bounds"><span>€5.000</span><span>€150.000</span></div>
+      </div>
+      <div class="sl-wrap">
+        <div class="sl-head"><span class="sl-label">Avans</span><span class="sl-value" id="lbl-avans">20% · €4.000</span></div>
+        <input type="range" id="sl-avans" min="10" max="80" step="5" value="20" oninput="recalc()">
+        <div class="sl-bounds"><span>10%</span><span>80%</span></div>
+      </div>
+      <div class="sl-wrap">
+        <div class="sl-head"><span class="sl-label">Valoare reziduală</span><span class="sl-value" id="lbl-rez">5% · €800</span></div>
+        <input type="range" id="sl-rez" min="0" max="20" step="1" value="5" oninput="recalc()">
+        <div class="sl-bounds"><span>0%</span><span id="hint-rez" class="sl-hint"></span><span id="rez-max-lbl">20%</span></div>
+      </div>
+      <div class="sl-wrap">
+        <div class="sl-head"><span class="sl-label">Durată finanțare</span><span class="sl-value" id="lbl-durata">48 luni</span></div>
+        <input type="range" id="sl-durata" min="12" max="60" step="6" value="48" oninput="recalc()">
+        <div class="sl-bounds"><span>12 luni</span><span>60 luni</span></div>
+      </div>
+    </div>
+
+    <div class="rates-bar">
+      <div class="rb"><div class="rl">Marjă fixă</div><div class="rv" id="r-marja">2,30%</div></div>
+      <div class="rb"><div class="rl">EURIBOR 6M</div><div class="rv gold" id="r-euribor">—</div></div>
+      <div class="rb"><div class="rl">Total / an</div><div class="rv" id="r-total">—</div></div>
+    </div>
+  </div>
+
+  <!-- DREAPTA -->
+  <div>
+    <div class="result-card">
+      <div class="rl">Rata lunară medie estimată</div>
+      <div class="big" id="res-medie">€ —</div>
+      <div class="sub-txt">fără TVA · dobândă variabilă recalculată la 6 luni</div>
+      <div class="result-split">
+        <div class="ritem"><div class="rl">Prima rată</div><div class="rv2" id="res-prima">—</div></div>
+        <div class="ritem" style="text-align:right"><div class="rl">Ultima rată</div><div class="rv2" id="res-ultima">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Structura finanțare</div>
+      <div class="row"><span class="row-l">Valoare mașină</span><span class="row-r" id="sf-masina">—</span></div>
+      <div class="row"><span class="row-l">Avans achitat</span><span class="row-r" id="sf-avans" style="color:var(--bt-red)">—</span></div>
+      <div class="row"><span class="row-l">Valoare finanțată</span><span class="row-r" id="sf-fin" style="color:var(--bt-blue)">—</span></div>
+      <div class="row"><span class="row-l">Reziduală la final</span><span class="row-r" id="sf-rez" style="color:#2E7D32">—</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" id="costuri-label">Costuri totale · 48 luni</div>
+      <div class="row"><span class="row-l">Dobânzi totale</span><span class="row-r gold" id="ct-dob">—</span></div>
+      <div class="row"><span class="row-l">Comisioane gestiune (incl. TVA)</span><span class="row-r gold" id="ct-gest">—</span></div>
+      <div class="row"><span class="row-l">Taxă administrare contract (incl. TVA)</span><span class="row-r gold" id="ct-admin">—</span></div>
+      <div class="row"><span class="row-l">Taxă servicii logistice</span><span class="row-r gold">≈ 1.131 lei</span></div>
+      <div class="row" id="row-eval" style="display:none"><span class="row-l">Evaluare bun rulat (incl. TVA)</span><span class="row-r gold" id="ct-eval">—</span></div>
+      <div class="row total"><span class="row-l">Total cost finanțare (€)</span><span class="row-r" id="ct-total">—</span></div>
+    </div>
+
+    <div class="note">
+      <strong>⚠️ Calculator estimativ.</strong> Ratele sunt pe sold descrescător (principal fix + dobândă pe soldul rămas). Dobânda variabilă se actualizează la 6 luni cu EURIBOR. <strong>Oferta promo expiră 31 martie 2026.</strong> EURIBOR se actualizează live din API-ul BCE.
+    </div>
+  </div>
+</div>
+
+<div style="max-width:980px;margin:0 auto;padding:0 20px 60px">
+  <button class="tbl-btn" id="tbl-btn" onclick="toggleTable()">▼ Afișează graficul complet de rambursare</button>
+  <div class="tbl-wrap" id="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th style="text-align:center">#</th>
+        <th>Sold (€)</th><th>Principal (€)</th><th>Dobândă (€)</th><th>Com. gest. (€)</th><th>RATĂ (€)</th>
+      </tr></thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let euribor = 2.139, oferta = 'promo', rulata = false, tableOpen = false, schedule = [];
+
+  async function fetchEuribor() {
+    const valEl = document.getElementById('euribor-val');
+    const srcEl = document.getElementById('euribor-src');
+    try {
+      const res = await fetch('https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT.MM.EURIBOR6MD_.HSTA?lastNObservations=1&format=csvdata&detail=dataonly');
+      const text = await res.text();
+      const lines = text.trim().split('\n');
+      const last = lines[lines.length - 1].split(',');
+      const period = last[0].trim().replace(/"/g,'');
+      const val = parseFloat(last[last.length-1].trim().replace(/"/g,''));
+      if (!isNaN(val) && val > 0) {
+        euribor = val;
+        valEl.textContent = val.toFixed(3) + '%';
+        srcEl.textContent = 'BCE · ' + period + ' · live';
+        srcEl.style.color = '#4CAF50';
+      } else throw 0;
+    } catch {
+      valEl.textContent = euribor.toFixed(3) + '%';
+      srcEl.textContent = 'Offline · valoare cached';
+      srcEl.style.color = '#FF9800';
+    }
+    recalc();
+  }
+
+  function eur(v) { return '€' + Math.round(v).toLocaleString('ro-RO'); }
+  function e2(v) { return v.toFixed(2).replace('.',','); }
+
+  function setOferta(o) {
+    oferta = o;
+    document.getElementById('btn-promo').classList.toggle('active', o==='promo');
+    document.getElementById('btn-std').classList.toggle('active', o==='standard');
+    recalc();
+  }
+  function setRulata(r) {
+    rulata = r;
+    document.getElementById('pill-noua').classList.toggle('active', !r);
+    document.getElementById('pill-rulata').classList.toggle('active', r);
+    document.getElementById('row-eval').style.display = r ? 'flex' : 'none';
+    recalc();
+  }
+  function toggleTable() {
+    tableOpen = !tableOpen;
+    document.getElementById('tbl-wrap').classList.toggle('open', tableOpen);
+    const d = +document.getElementById('sl-durata').value;
+    document.getElementById('tbl-btn').textContent = (tableOpen?'▲ Ascunde':'▼ Afișează') + ` graficul complet de rambursare (${d} rate)`;
+    if (tableOpen) renderTable();
+  }
+  function renderTable() {
+    document.getElementById('tbl-body').innerHTML = schedule.map(r => `<tr>
+      <td>${r.luna}</td><td>${Math.round(r.sold).toLocaleString('ro-RO')}</td>
+      <td>${e2(r.principal)}</td><td class="td-gold">${e2(r.dobanda)}</td>
+      <td class="td-muted">${e2(r.comisionG)}</td><td class="td-bold">${e2(r.rata)}</td>
+    </tr>`).join('');
+  }
+
+  function recalc() {
+    const val = +document.getElementById('sl-val').value;
+    const avP = +document.getElementById('sl-avans').value;
+    const rezSlider = document.getElementById('sl-rez');
+    const rezMax = Math.min(avP, 20);
+    rezSlider.max = rezMax;
+    if (+rezSlider.value > rezMax) rezSlider.value = rezMax;
+    const rezRaw = +rezSlider.value;
+    const rezP = rezRaw;
+    const dur = +document.getElementById('sl-durata').value;
+    const marja = oferta==='promo' ? 2.3 : 2.45;
+    const taP = oferta==='promo' ? 0.015 : 0.025;
+    const TVA = 0.19, rl = (marja+euribor)/100/12;
+    const av = val*avP/100, rez = val*rezP/100, vf = val-av;
+    const pr = (vf-rez)/dur;
+
+    schedule = [];
+    for (let i=1; i<=dur; i++) {
+      const s = vf-(i-1)*pr, d = s*rl, g = s*0.0004*(1+TVA), r = pr+d+g;
+      schedule.push({luna:i, sold:s, principal:pr, dobanda:d, comisionG:g, rata:r});
+    }
+
+    const media = schedule.reduce((s,r)=>s+r.rata,0)/dur;
+    const totD = schedule.reduce((s,r)=>s+r.dobanda,0);
+    const totG = schedule.reduce((s,r)=>s+r.comisionG,0);
+    const ta = vf*taP*(1+TVA);
+    const ev = rulata ? 70*(1+TVA) : 0;
+
+    document.getElementById('lbl-val').textContent = eur(val);
+    document.getElementById('lbl-avans').textContent = `${avP}% · ${eur(av)}`;
+    document.getElementById('lbl-rez').textContent = `${rezP}% · ${eur(rez)}`;
+    document.getElementById('lbl-durata').textContent = `${dur} luni`;
+    document.getElementById('rez-max-lbl').textContent = rezMax + '%';
+    document.getElementById('hint-rez').textContent = avP < 20 ? `⚠️ max = avans (${avP}%)` : '';
+
+    document.getElementById('r-marja').textContent = marja.toFixed(2).replace('.',',')+'%';
+    document.getElementById('r-euribor').textContent = euribor.toFixed(3).replace('.',',')+'%';
+    document.getElementById('r-total').textContent = (marja+euribor).toFixed(3).replace('.',',')+'%';
+
+    document.getElementById('res-medie').textContent = eur(media);
+    document.getElementById('res-prima').textContent = eur(schedule[0].rata);
+    document.getElementById('res-ultima').textContent = eur(schedule[dur-1].rata);
+
+    document.getElementById('sf-masina').textContent = eur(val);
+    document.getElementById('sf-avans').textContent = '− '+eur(av);
+    document.getElementById('sf-fin').textContent = eur(vf);
+    document.getElementById('sf-rez').textContent = eur(rez);
+
+    document.getElementById('costuri-label').textContent = `Costuri totale · ${dur} luni`;
+    document.getElementById('ct-dob').textContent = eur(totD);
+    document.getElementById('ct-gest').textContent = eur(totG);
+    document.getElementById('ct-admin').textContent = eur(ta);
+    document.getElementById('ct-eval').textContent = eur(ev);
+    document.getElementById('ct-total').textContent = eur(totD+totG+ta+ev);
+
+    document.getElementById('tbl-btn').textContent = (tableOpen?'▲ Ascunde':'▼ Afișează')+` graficul complet de rambursare (${dur} rate)`;
+    if (tableOpen) renderTable();
+  }
+
+  fetchEuribor();
+</script>
+</body>
+</html>
